@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+
+
+# Copyright (C) 2023-present the-weird-aquarian
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+import argparse
+import os
+from sys import argv
+from PIL import Image, UnidentifiedImageError
+from concurrent.futures import ThreadPoolExecutor
+
+
+def usage():
+    print('''
+Usage: 
+python3 image-convert -i <image> -o <output format>
+python3 image-convert -i <image1> <image2> <image3> -o <output format>
+
+Description: 
+Convert images to different formats.
+
+Options:
+    -h, --help              Show this help message and exit
+    -f, --formats           Show a list of supported output formats
+    -i, --input-files       Path to the input image files
+    -o, --output-format     Output format (e.g.: png, jpeg, etc.)
+    -d, --directory         Output directory for converted images
+    -l, --lossy             Perform lossy conversion (default: lossless, except for JPEG)
+    -p, --parallel          Convert images in parallel
+
+NOTE:
+If -p/--parallel option is used, multiple images will be read in parallel.
+This will be faster, however, it might use a lot of system resources if too many images are provided.
+
+Examples:
+python3 image-convert -i icon.png -o jpeg
+python3 image-convert -i icon1.png icon2.jpg icon3.webp -o tiff -d /home/user/Downloads
+    ''')
+    exit()
+
+
+def is_valid_image_file(input_file):
+    try:
+        with Image.open(input_file):
+            pass
+    except FileNotFoundError:
+        print(f"{input_file} was not found.\n")
+        exit()
+    except PermissionError:
+        print(f"Permission denied while accessing {input_file}.\n")
+        exit()
+    except UnidentifiedImageError:
+        print(f"{input_file} is not a valid image file.\n")
+        exit()
+    except OSError as e:
+        print(f"Error: {e}\n")
+        exit()
+    
+
+def convert_image(input_file):
+    print(f"\n{input_file}")
+    image = Image.open(input_file)
+    save_kwargs = {}
+
+    save_kwargs = image.info # Save metadata
+
+    if not args.lossy and args.output_format.lower() != "jpeg":
+        save_kwargs["lossless"] = True
+    
+    if not args.output_directory:
+        args.output_directory = os.path.dirname(input_file)
+
+    output_filename = f"{os.path.splitext(os.path.basename(input_file))[0]}.{args.output_format.lower()}"
+    output_file = os.path.join(args.output_directory, output_filename)
+
+    image.save(output_file, format=args.output_format, **save_kwargs)
+    print(f"[+] {input_file} successfully converted to {args.output_format.upper()}.\n")
+    
+
+arg_parser = argparse.ArgumentParser(add_help=False, usage="python3 image-convert -i <input files> -o <output format>")
+arg_parser.add_argument("-h", "--help", action="store_true")
+arg_parser.add_argument("-f", "--formats", action="store_true")
+arg_parser.add_argument("-i", "--input-files", nargs="+", dest="input_files")
+arg_parser.add_argument("-o", "--output-format", dest="output_format")
+arg_parser.add_argument("-d", "--directory", dest="output_directory")
+arg_parser.add_argument("-l", "--lossy", action="store_true")
+arg_parser.add_argument("-p", "--parallel", action="store_true")
+
+args = arg_parser.parse_args()
+supported_formats = ["jpeg", "png", "webp", "tiff", "bmp", "ico", "icns", "pbm", "pgm", "ppm"]
+gif_images = []
+
+if len(argv) == 1 or args.help:
+    usage() # Print usage if no options provided or -h/--help provided
+
+if args.formats:
+    print(f"\nSupported output formats:")
+    for format in supported_formats:
+        print(f"{format}")
+    print()
+    exit()
+
+if not args.input_files:
+    print(f"\nNo input file provided.\nTry 'python3 image-convert -h' for more info.\n")
+    exit()
+
+if not args.output_format:
+    print(f"\nNo output format provided.\nTry 'python3 image-convert -h' for more info.\n")
+    exit()
+    
+if args.output_format.lower() not in supported_formats:
+    print("\nThe output format is not supported.\nTry 'python3 image-convert -h' for more info.\n")
+    exit()
+
+if args.output_directory:
+    try:
+        os.makedirs(args.output_directory, exist_ok=True)
+    except PermissionError:
+        print(f"Permission denied while creating the output directory {args.output_directory}.")
+        exit()
+
+print(f"\nValidating all image files ...")
+for file in args.input_files:
+    is_valid_image_file(file)
+
+if args.parallel:
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(convert_image, input_file) for input_file in args.input_files]
+        for future in futures:
+            future.result()   
+else:
+    for input_file in args.input_files:
+        convert_image(input_file)
