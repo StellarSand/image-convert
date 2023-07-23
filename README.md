@@ -73,7 +73,7 @@ chmod +x image-convert
 ```
 
 **NOTE**:
-If -p/--parallel option is used, multiple images will be read in parallel.
+If -p/--parallel option is used, multiple images will be converted in parallel.
 This will be faster, however, it might use a lot of system resources if too many images are provided.
 
 
