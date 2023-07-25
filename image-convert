@@ -18,6 +18,7 @@
 
 
 import argparse
+import glob
 import os
 from sys import argv
 from PIL import Image, UnidentifiedImageError
@@ -48,9 +49,17 @@ This will be faster, however, it might use a lot of system resources if too many
 
 Examples:
 python3 image-convert -i icon.png -o jpeg
+python3 image-convert -i *.png -o jpeg
 python3 image-convert -i icon1.png icon2.jpg icon3.webp -o tiff -d /home/user/Downloads
     ''')
     exit()
+
+
+def get_matching_files(patterns):
+    matched_files = []
+    for pattern in patterns:
+        matched_files.extend(glob.glob(pattern))
+    return matched_files
 
 
 def is_valid_image_file(input_file):
@@ -117,6 +126,12 @@ if args.formats:
 if not args.input_files:
     print(f"\nNo input file provided.\nTry 'python3 image-convert -h' for more info.\n")
     exit()
+
+if args.input_files:
+    args.input_files = get_matching_files(args.input_files)
+    if not args.input_files:
+        print(f"No image files found with the provided patterns.\n")
+        exit()
 
 if not args.output_format:
     print(f"\nNo output format provided.\nTry 'python3 image-convert -h' for more info.\n")

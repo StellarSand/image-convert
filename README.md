@@ -100,6 +100,11 @@ python3 image-convert -i icon1.png icon2.jpg icon3.webp -o tiff -d /home/user/Do
 python3 image-convert -i icon1.png icon2.jpg -o webp -l -p
 ```
 
+**Convert all images with a specified format:**
+```
+python3 img-pdf-convert -i *.png *.jpg -o webp
+```
+
 
 
 ## Contributing
