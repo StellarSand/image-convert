@@ -46,7 +46,7 @@
 ## Installation
 **1. Clone this repo:**
 ```
-git clone https://github.com/the-weird-aquarian/image-convert.git
+git clone https://github.com/StellarSand/image-convert.git
 ```
 
 **2. Move into the project directory:**
@@ -108,9 +108,9 @@ python3 img-pdf-convert -i *.png *.jpg -o webp
 
 
 ## Contributing
-Pull requests can be submitted [here](https://github.com/the-weird-aquarian/image-convert/pulls).
+Pull requests can be submitted [here](https://github.com/StellarSand/image-convert/pulls).
 
 
 
 ## License
-This project is licensed under the terms of [GPLv3 license](https://github.com/the-weird-aquarian/image-convert/blob/main/LICENSE).
+This project is licensed under the terms of [GPLv3 license](https://github.com/StellarSand/image-convert/blob/main/LICENSE).
